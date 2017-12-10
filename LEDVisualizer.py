@@ -96,11 +96,12 @@ class LEDVisualizer(threading.Thread):
             self.setBrightness(ultrasonicVal)
 
     def updateBrightness(self):
+
+        print("avgval : ", self.ultrasonicAVGvalue)
         if (self.mode != 1):
             self.strip.setBrightness(255)
             self.strip.show()
             return
-
         brightness = self.ultrasonicAVGvalue
         self.strip.setBrightness(brightness)
         self.strip.show()

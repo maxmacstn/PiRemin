@@ -8,6 +8,7 @@ import threading
 from LEDVisualizer import *
 from SoundManager import *
 
+
 class PiReminGUI(object):
     def __init__(self, master, **kwargs):
         self.master = master
@@ -25,16 +26,18 @@ class PiReminGUI(object):
 
         self.init_element(master)
 
-        self.ledVisual = LEDVisualizer()
-        self.ledVisual.start()          # Start LED Visualizer thread
+        # self.ledVisual = LEDVisualizer()
+        # self.ledVisual.start()          # Start LED Visualizer thread
 
-     #   self.soundManager = SoundManager()
-      #  self.soundManager.start()       #Start sound manager
+        self.soundManager = SoundManager()
+        self.soundManager.start()  # Start sound manager
 
     def on_closing(self):
-        self.ledVisual.end()
-        self.ultrasonic1.end()
+        # self.ledVisual.end()
+        # self.ultrasonic1.end()
+        self.soundManager.shutDownSystem()
         self.master.destroy()
+
 
     def toggle_fullscreen(self, event=None):
         self.state = not self.state  # Just toggling the boolean000
@@ -42,16 +45,19 @@ class PiReminGUI(object):
         self.master.attributes("-fullscreen", self.state)
         return "break"
 
+
     def end_fullscreen(self, event=None):
         self.state = False
         self.master.attributes("-fullscreen", False)
         return "break"
+
 
     def change_screen_mode(self):
         if (self.state):
             self.end_fullscreen()
         else:
             self.toggle_fullscreen()
+
 
     def init_element(self, master):
         self.pitch_slider = tk.Scale(master, from_=0, to=200, orient=tk.VERTICAL)
@@ -60,7 +66,7 @@ class PiReminGUI(object):
         label.image = photo  # keep a reference!
         label.place(x=0, y=0, relwidth=1, relheight=1)
 
-        self.pitch_slider = tk.Scale(master, sliderlength=50, length=400, from_=0, to=200,
+        self.pitch_slider = tk.Scale(master, sliderlength=50, length=400, from_=0, to=100,
                                      width=70, repeatdelay=1, orient=tk.VERTICAL,
                                      command=self.on_pitch_slder_change,
                                      bg="#834C38",
@@ -69,7 +75,7 @@ class PiReminGUI(object):
                                      activebackground="#9A746B")
         self.pitch_slider.place(x=552, y=183)
 
-        self.freq_slider = tk.Scale(master, sliderlength=50, length=400, from_=0, to=200,
+        self.freq_slider = tk.Scale(master, sliderlength=50, length=400, from_=200, to=1000,
                                     width=70, repeatdelay=1, orient=tk.VERTICAL,
                                     command=self.on_pitch_slder_change,
                                     bg="#834C38",
@@ -79,7 +85,7 @@ class PiReminGUI(object):
                                     )
         self.freq_slider.place(x=701, y=183)
 
-        self.vol_slider = tk.Scale(master, sliderlength=50, length=400, from_=0, to=200,
+        self.vol_slider = tk.Scale(master, sliderlength=50, length=400, from_=0, to=100,
                                    width=70, repeatdelay=1, orient=tk.VERTICAL,
                                    command=self.on_pitch_slder_change,
                                    bg="#834C38",
@@ -104,22 +110,27 @@ class PiReminGUI(object):
 
         self.ultrasonicVal.after(33, self.updateVal)
 
+
     def setLight(self):
         self.ledVisual.changeMode()
 
+
     def updateVal(self):
         ultrasonicRange = self.ultrasonic1.getValue()
-        self.val.set(ultrasonicRange)
-        if ultrasonicRange > 255:
-            ultrasonicRange = 0
-        print("VOL Slider = ", self.vol_slider.get())
-        #self.ledVisual.setBrightness(ultrasonicRange)
-        self.ledVisual.receiveUltrasonicValue(self.vol_slider.get())
-        self.ledVisual.updateBrightness()
+        self.val.set(format(ultrasonicRange, '.2f').ljust(-6))
+
+        #if ultrasonicRange > 255:
+        #  ultrasonicRange = 0
+
+        # print("VOL Slider = ", self.vol_slider.get())
+        # self.ledVisual.setBrightness(ultrasonicRange)
+        # self.ledVisual.receiveUltrasonicValue(self.vol_slider.get())
+        # self.ledVisual.updateBrightness()
 
 
-      #  self.soundManager.updateSound(self.pitch_slider.get(),self.vol_slider.get())
+        self.soundManager.updateSound(self.freq_slider.get(), self.vol_slider.get() / 100.0)
         self.ultrasonicVal.after(33, self.updateVal)
+
 
     def on_pitch_slder_change(self, value):
         print(value)

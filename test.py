@@ -17,7 +17,7 @@ GPIO.output(TRIG, False)
 try:
 
     while True:
-        time.sleep(0.01)
+        time.sleep(0.1)
         GPIO.output(TRIG, True)
         time.sleep(0.00001)
         GPIO.output(TRIG, False)
