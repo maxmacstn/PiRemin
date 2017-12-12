@@ -29,7 +29,7 @@ class Ultrasonic(threading.Thread):
 
             #get new value
             else:
-                distance_val = self.sensor.raw_distance(1, 0.05)
+                distance_val = self.sensor.raw_distance(1, 0.1)
                 self.lastUpdateValue = distance_val
                 self.lastUpdateTime = time.time()
                 if (distance_val > self.max_range or distance_val < 0.0):
