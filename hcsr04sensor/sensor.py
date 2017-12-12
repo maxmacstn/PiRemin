@@ -72,7 +72,27 @@ class Measurement(object):
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.trig_pin, GPIO.OUT)
         GPIO.setup(self.echo_pin, GPIO.IN)
-        
+
+        # for distance_reading in range(sample_size):
+        #     GPIO.output(self.trig_pin, GPIO.LOW)
+        #     time.sleep(sample_wait)
+        #     GPIO.output(self.trig_pin, True)
+        #     time.sleep(0.00001)
+        #     GPIO.output(self.trig_pin, False)
+        #     echo_status_counter = 1
+        #     while GPIO.input(self.echo_pin) == 0:
+        #         #if echo_status_counter < 1000:
+        #         if echo_status_counter < 500:
+        #             sonar_signal_off = time.time()
+        #             echo_status_counter += 1
+        #         else:
+        #             raise SystemError('Echo pulse was not received')
+        #     while GPIO.input(self.echo_pin) == 1:
+        #         sonar_signal_on = time.time()
+        #     time_passed = sonar_signal_on - sonar_signal_off
+        #     distance_cm = time_passed * ((speed_of_sound * 100) / 2)
+        #     sample.append(distance_cm)
+
         for distance_reading in range(sample_size):
             GPIO.output(self.trig_pin, GPIO.LOW)
             time.sleep(sample_wait)
@@ -81,16 +101,24 @@ class Measurement(object):
             GPIO.output(self.trig_pin, False)
             echo_status_counter = 1
             while GPIO.input(self.echo_pin) == 0:
-                if echo_status_counter < 1000:
+                #if echo_status_counter < 1000:
+                if echo_status_counter < 500:
                     sonar_signal_off = time.time()
                     echo_status_counter += 1
                 else:
                     raise SystemError('Echo pulse was not received')
             while GPIO.input(self.echo_pin) == 1:
                 sonar_signal_on = time.time()
-            time_passed = sonar_signal_on - sonar_signal_off
-            distance_cm = time_passed * ((speed_of_sound * 100) / 2)
-            sample.append(distance_cm)
+            try:
+                time_passed = sonar_signal_on - sonar_signal_off
+                distance_cm = time_passed * ((speed_of_sound * 100) / 2)
+                sample.append(distance_cm)
+            except UnboundLocalError:
+                distance_reading -=1
+                print("Unbound Error")
+            # except SystemError:
+            #     distance_reading -= 1
+
         sorted_sample = sorted(sample)
         # Only cleanup the pins used to prevent clobbering
         # any others in use by the program

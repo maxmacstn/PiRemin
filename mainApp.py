@@ -22,19 +22,22 @@ class PiReminGUI(object):
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # master.wm_attributes('-transparentcolor', 'black')
-        self.ultrasonic1 = UltrasonicManager.Ultrasonic(23, 24)
 
         self.init_element(master)
 
-        # self.ledVisual = LEDVisualizer()
-        # self.ledVisual.start()          # Start LED Visualizer thread
+        self.ledVisual = LEDVisualizer()
+        self.ledVisual.setDaemon(True)
+        self.ledVisual.start()          # Start LED Visualizer thread
+
+        self.ultrasonic1 = UltrasonicManager.Ultrasonic(23, 24)
+        self.ultrasonic1.start()
 
         self.soundManager = SoundManager()
         self.soundManager.start()  # Start sound manager
 
     def on_closing(self):
-        # self.ledVisual.end()
-        # self.ultrasonic1.end()
+        self.ledVisual.end()
+        self.ultrasonic1.end()
         self.soundManager.shutDownSystem()
         self.master.destroy()
 
@@ -60,6 +63,7 @@ class PiReminGUI(object):
 
 
     def init_element(self, master):
+        print("initing GUI")
         self.pitch_slider = tk.Scale(master, from_=0, to=200, orient=tk.VERTICAL)
         photo = ImageTk.PhotoImage(file="/home/pi/max/project/Piremin_main_gui_bg.jpg")
         label = tk.Label(master, image=photo)
@@ -109,6 +113,7 @@ class PiReminGUI(object):
         self.screenMode_button.place(x=30, y=250)
 
         self.ultrasonicVal.after(33, self.updateVal)
+        print("Done init GUI")
 
 
     def setLight(self):
@@ -117,18 +122,28 @@ class PiReminGUI(object):
 
     def updateVal(self):
         ultrasonicRange = self.ultrasonic1.getValue()
-        self.val.set(format(ultrasonicRange, '.2f').ljust(-6))
+
+        if (ultrasonicRange > 40):
+            ultrasonicRange = 0
+
+        #print("Ultrasonic = ", ultrasonicRange)
+        #update value on GUI
+        self.val.set(format(format(ultrasonicRange, '.2f'),">6s"))
 
         #if ultrasonicRange > 255:
         #  ultrasonicRange = 0
 
         # print("VOL Slider = ", self.vol_slider.get())
-        # self.ledVisual.setBrightness(ultrasonicRange)
-        # self.ledVisual.receiveUltrasonicValue(self.vol_slider.get())
-        # self.ledVisual.updateBrightness()
 
+        self.ledVisual.receiveUltrasonicValue(ultrasonicRange)
+        self.ledVisual.updateBrightness()
 
-        self.soundManager.updateSound(self.freq_slider.get(), self.vol_slider.get() / 100.0)
+        freq = ultrasonicRange * 100 + self.freq_slider.get()
+        vol = self.vol_slider.get() / 100.0
+        if(ultrasonicRange == 0):
+            vol = 0
+
+        self.soundManager.updateSound(freq, vol)
         self.ultrasonicVal.after(33, self.updateVal)
 
 
