@@ -10,7 +10,8 @@ class LEDVisualizer(threading.Thread):
 
         # LED strip configuration:
         LED_COUNT = 6  # Number of LED pixels.
-        LED_PIN = 18  # GPIO pin connected to the pixels (18 uses PWM!).
+       # LED_PIN = 18  # GPIO pin connected to the pixels (18 uses PWM!).
+        LED_PIN = 21 # GPIO pin connected to the pixels (21 = PCM)
         # LED_PIN        = 10      # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
         LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
         LED_DMA = 5  # DMA channel to use for generating signal (try 5)
@@ -78,7 +79,7 @@ class LEDVisualizer(threading.Thread):
             self.ultrasonicDistPos = 0
 
         avgVal = sum(self.ultrasonicDist) / len(self.ultrasonicDist)
-        print(avgVal)
+        #print(avgVal)
         return avgVal
 
     def rainbow(self, wait_ms=20, iterations=1):
@@ -97,7 +98,7 @@ class LEDVisualizer(threading.Thread):
 
     def updateBrightness(self):
 
-        print("avgval : ", self.ultrasonicAVGvalue)
+        #print("avgval : ", self.ultrasonicAVGvalue)
         if (self.mode != 1):
             self.strip.setBrightness(255)
             self.strip.show()
