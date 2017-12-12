@@ -43,15 +43,12 @@ class PiReminGUI(object):
 
     def on_closing(self):
         self.ledVisual.end()
-        self.ultrasonicFreq.end()
-        self.ultrasonicAmp.end()
         self.soundManager.shutDownSystem()
         self.master.destroy()
 
 
     def toggle_fullscreen(self, event=None):
         self.fullScreen = not self.fullScreen
-
         self.master.attributes("-fullscreen", self.fullScreen)
         return "break"
 
@@ -100,15 +97,15 @@ class PiReminGUI(object):
 
         self.FreqVal = tk.StringVar()
         self.AmpVal = tk.StringVar()
-        self.ultrasonicFreqVal = tk.Label(master, textvariable=self.FreqVal, font=("Courier", 38))
+        self.ultrasonicFreqVal = tk.Label(master, textvariable=self.FreqVal, font=("Courier", 32))
         self.ultrasonicFreqVal.place(x=30, y=150)
-        self.ultrasonicFreqVal = tk.Label(master, textvariable=self.AmpVal, font=("Courier", 38))
-        self.ultrasonicFreqVal.place(x=30, y=190)
+        self.ultrasonicAmpVal = tk.Label(master, textvariable=self.AmpVal, font=("Courier", 32))
+        self.ultrasonicAmpVal.place(x=30, y=210)
 
-        self.screenMode_button = tk.Button(master, text="LED", command=self.setLight, font=("Courier", 38))
-        self.screenMode_button.place(x=30, y=250)
+        self.screenMode_button = tk.Button(master, text="LED", command=self.setLight, font=("Courier", 32))
+        self.screenMode_button.place(x=30, y=290)
 
-        self.ultrasonicVal.after(UPDATE_INTERVAL, self.updateVal)
+        self.master.after(UPDATE_INTERVAL, self.update)
         print("Done init GUI")
 
 
@@ -116,7 +113,7 @@ class PiReminGUI(object):
         self.ledVisual.changeMode()
 
 
-    def updateVal(self):
+    def update(self):
         ultrasonicFreqRange = self.ultrasonicFreq.getValue()
         ultrasonicAmpRange = self.ultrasonicAmp.getValue()
 
@@ -128,19 +125,19 @@ class PiReminGUI(object):
 
         #Update GUI
         self.FreqVal.set(format(format(ultrasonicFreqRange, '.2f'),">6s"))
-        self.Ampval.set(format(format(ultrasonicFreqRange, '.2f'), ">6s"))
+        self.AmpVal.set(format(format(ultrasonicAmpRange, '.2f'), ">6s"))
 
         self.ledVisual.receiveUltrasonicValue(ultrasonicFreqRange)
         self.ledVisual.updateBrightness()
 
         freq = ultrasonicFreqRange * 100 + self.freq_slider.get()
-        vol = (ultrasonicAmpRange + self.amp_slider.get()) / 50.0
+        vol = (ultrasonicAmpRange + self.amp_slider.get() / 100) / 50.0
 
         if(ultrasonicAmpRange == 0):
             vol = 0
 
         self.soundManager.updateSound(freq, vol)
-        self.ultrasonicVal.after(UPDATE_INTERVAL, self.updateVal)
+        self.master.after(UPDATE_INTERVAL, self.update)
 
 
 def main():
