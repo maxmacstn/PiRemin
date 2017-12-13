@@ -63,7 +63,7 @@ class LEDVisualizer(threading.Thread):
         rawVal + 2
         if rawVal < 2:
             rawVal = 0
-        if rawVal > 40:
+        if rawVal > 50:
             rawVal = 0
         inputLowVal = 0
         inputHighVal = 40
