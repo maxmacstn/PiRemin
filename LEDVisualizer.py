@@ -22,7 +22,6 @@ class LEDVisualizer(threading.Thread):
         # Create NeoPixel object with appropriate configuration.
         self.strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS,
                                        LED_CHANNEL, LED_STRIP)
-
         self.ultrasonicDist = [255, 255, 255, 255, 255, 255, 255, 255, 255, 255]
         self.ultrasonicDistPos = 0
         self.ultrasonicAVGvalue = 0;
