@@ -1,6 +1,7 @@
 import tkinter as tk
 import UltrasonicManager
 import PIL
+import subprocess
 
 from PIL import Image, ImageTk
 from neopixel import *
@@ -21,6 +22,7 @@ class PiReminGUI(object):
     def __init__(self, master, **kwargs):
         self.master = master
         self.fullScreen = False
+        self.master.title("PiRemin")
         master.resizable(width=False, height=False)
         master.geometry('{}x{}'.format(1024, 600))  # Set window size to fit lcd touch screen
 
@@ -28,6 +30,7 @@ class PiReminGUI(object):
         master.bind("<Escape>", self.end_fullscreen)
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.currentLEDmode = LED_MODE[0]
+        self.lastLEDstate = False
 
         self.init_element(master)
 
@@ -42,8 +45,18 @@ class PiReminGUI(object):
 
         self.ledVisual = LEDVisualizer()
         self.ledVisual.start()
+        self.toggle_fullscreen()
+        self.setLight()
 
     def on_closing(self):
+        try:
+            subprocess.call(['./home/pi/max/project/asm/light_off'])
+        except Exception:
+            pass
+        try:
+            subprocess.call(['./max/project/asm/light_off'])
+        except Exception:
+            pass
         self.ledVisual.end()
         self.soundManager.shutDownSystem()
         self.ultrasonicAmp.end()
@@ -118,6 +131,23 @@ class PiReminGUI(object):
         self.ledVisual.changeMode()
         self.ledMode_button["text"] = LED_MODE[self.ledVisual.mode]
 
+    def statusLED(self,state):
+        if (state == self.lastLEDstate):
+            return
+        else:
+            if(state):
+                try:
+                    subprocess.call(['./max/project/asm/light_on'])
+                except Exception:
+                    subprocess.call(['./asm/light_on'])
+
+            else:
+                try:
+                    subprocess.call(['./max/project/asm/light_off'])
+                except Exception:
+                    subprocess.call(['./asm/light_off'])
+            self.lastLEDstate = state
+
 
     def update(self):
         ultrasonicFreqRange = self.ultrasonicFreq.getValue()
@@ -129,6 +159,12 @@ class PiReminGUI(object):
         if (ultrasonicAmpRange > 50):
             ultrasonicAmpRange = 0
 
+        #Update ultrasonic status LED
+        if(ultrasonicFreqRange + ultrasonicAmpRange != 0):
+            self.statusLED(True)
+        else:
+            self.statusLED(False)
+
         #Update GUI
         self.FreqVal.set(format(format(ultrasonicFreqRange, '.2f'),">6s"))
         self.AmpVal.set(format(format(ultrasonicAmpRange, '.2f'), ">6s"))
@@ -137,19 +173,18 @@ class PiReminGUI(object):
         self.ledVisual.updateBrightness()
 
         freq = ultrasonicFreqRange * 100 + self.freq_slider.get()
-        if self.amp_slider.get() == 0:
-            vol = ultrasonicAmpRange / 50.0
-        else:
+        if self.amp_slider.get() > 0:
             vol = self.amp_slider.get() / 100
-
-        if(ultrasonicAmpRange == 0):
-            vol = 0.0
+        else:
+            vol = ultrasonicAmpRange / 50.0
 
         self.soundManager.updateSound(freq, vol)
         self.master.after(UPDATE_INTERVAL, self.update)
 
 
 def main():
+    print("PiRemin is starting...")
+    time.sleep(5)
     window = tk.Tk()  # Create new main window
     app = PiReminGUI(window)  # Create GUI App
     window.mainloop()

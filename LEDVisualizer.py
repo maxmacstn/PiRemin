@@ -146,5 +146,5 @@ class LEDVisualizer(threading.Thread):
 
     def end(self):
         self.mode = -1
-        self.stopLight == True
+        self.stopLight = True
 
