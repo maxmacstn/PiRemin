@@ -14,6 +14,7 @@ class Ultrasonic(threading.Thread):
         self.lastUpdateValue = 0.0
         self.maxRefreshTime = 100   #100ms
         self.distance = 0.0
+        self.isTerminate  = False
         self.sensor = ultrasonic.Measurement(trig_pin, echo_pin)
 
     def getValue(self):
@@ -23,7 +24,8 @@ class Ultrasonic(threading.Thread):
     def run(self):
         # lock = threading.Lock()
         # lock.acquire()
-        while True:
+        while not self.isTerminate:
+            # print("Ultrasonic ",self.isTerminate)
             if (time.time() - self.lastUpdateTime < (self.maxRefreshTime / 1000) and self.lastUpdateValue != 0.0):
                 self.distance = self.lastUpdateValue
 
@@ -37,7 +39,9 @@ class Ultrasonic(threading.Thread):
                 #print("Distance_val = ", distance_val)
                 self.distance = distance_val
 
+        print("Ultrasonic is stopped")
+
 
 
     def end(self):
-        GPIO.cleanup()
+        self.isTerminate == True

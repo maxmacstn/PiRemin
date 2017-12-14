@@ -58,6 +58,8 @@ class LEDVisualizer(threading.Thread):
                 self.led_off()
                 break
 
+        print("LED is stopped")
+
     def getTransformedVal(self, rawVal):
         rawVal + 2
         if rawVal < 2:
@@ -65,12 +67,11 @@ class LEDVisualizer(threading.Thread):
         if rawVal > 50:
             rawVal = 0
         inputLowVal = 0
-        inputHighVal = 40
+        inputHighVal = 50
         outputLowVal = 0
         outputHighVal = 255
 
-        transformedVal = (rawVal - inputLowVal) / (inputHighVal - inputLowVal) * (
-        outputHighVal - outputLowVal) + outputLowVal
+        transformedVal = (rawVal - inputLowVal) / (inputHighVal - inputLowVal) * (outputHighVal - outputLowVal) + outputLowVal
 
         self.ultrasonicDist[self.ultrasonicDistPos] = transformedVal
         self.ultrasonicDistPos += 1
@@ -145,6 +146,5 @@ class LEDVisualizer(threading.Thread):
 
     def end(self):
         self.mode = -1
-        print("Stopping led")
         self.stopLight == True
 

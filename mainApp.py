@@ -31,10 +31,6 @@ class PiReminGUI(object):
 
         self.init_element(master)
 
-        self.ledVisual = LEDVisualizer()
-        self.ledVisual.setDaemon(True)
-        self.ledVisual.start()
-
 
         self.ultrasonicFreq = UltrasonicManager.Ultrasonic(FREQ_TRIG, FREQ_ECHO)
         self.ultrasonicFreq.start()
@@ -44,9 +40,14 @@ class PiReminGUI(object):
         self.soundManager = SoundManager()
         self.soundManager.start()
 
+        self.ledVisual = LEDVisualizer()
+        self.ledVisual.start()
+
     def on_closing(self):
         self.ledVisual.end()
         self.soundManager.shutDownSystem()
+        self.ultrasonicAmp.end()
+        self.ultrasonicFreq.end()
         self.master.destroy()
 
 
@@ -136,10 +137,13 @@ class PiReminGUI(object):
         self.ledVisual.updateBrightness()
 
         freq = ultrasonicFreqRange * 100 + self.freq_slider.get()
-        vol = (ultrasonicAmpRange + self.amp_slider.get() / 100) / 50.0
+        if self.amp_slider.get() == 0:
+            vol = ultrasonicAmpRange / 50.0
+        else:
+            vol = self.amp_slider.get() / 100
 
         if(ultrasonicAmpRange == 0):
-            vol = 0
+            vol = 0.0
 
         self.soundManager.updateSound(freq, vol)
         self.master.after(UPDATE_INTERVAL, self.update)

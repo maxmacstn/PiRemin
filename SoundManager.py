@@ -1,59 +1,54 @@
 import threading
-import math
 import pyaudio
-import wave
-import sys
+import numpy
 
+# for test running
 import time
 
-
+BITRATE = 44100
 class SoundManager(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.p = pyaudio.PyAudio()
-        self.stream = self.p.open(format=self.p.get_format_from_width(1),
+        self.stream = self.p.open(format=pyaudio.paFloat32,
                                   channels=1,
-                                  rate=44000,
+                                  rate=BITRATE,
                                   input=True,
                                   output=True)
         self.soundOn = True
-        self.bitRate = 8800;
-        self.volume = 0.1
-        self.pitch = 440.0
-        self.numberOfFrames = int(self.bitRate)
-        self.restFrames = self.numberOfFrames % self.bitRate
-        self.waveData = ''
+        self.amplitude = 1.0
+        self.frequency = 440.0
+        self.waveData = numpy.float32
 
+    # start the sound synthesis thread
     def run(self):
         print("Playing sound")
-        while True:
-            self.playSound(self.soundOn)
+        while self.soundOn:
+            self.playSound()
+        print("Sound terminated")
 
-    def playSound(self, sndOn):
-        if (sndOn):
-            # code for sound generation
-            self.waveData = ''
-            for x in range(self.numberOfFrames):
-                self.waveData = self.waveData + chr(int(math.sin(x / ((self.bitRate / self.pitch) / math.pi)) * 127 + 128))
-            for x in range(self.restFrames):
-                self.waveData = self.waveData + chr(128)
-            self.stream.write(self.waveData)
+    # code for sound generation
+    def playSound(self):
+        if (self.soundOn):
+            waveData = (numpy.sin(2*numpy.pi*numpy.arange(BITRATE*0.1)*self.frequency/BITRATE)).astype(numpy.float32)
+            if self.stream.is_stopped():
+                self.stream.start_stream()
+            self.stream.write(self.amplitude * waveData)
+        else:
+            self.stream.stop_stream()
 
-    def updateSound(self, newPitch, newVolume):
-        self.pitch = newPitch
-        self.volume = newVolume
+    # update the frequency and amplitude for sound generation
+    def updateSound(self, newFrequency, newAmplitude):
+        self.frequency = newFrequency
+        if newAmplitude > 1.0:
+            self.amplitude = 1.0
+        elif newAmplitude < 0.0:
+            self.amplitude = 0.0
+        self.amplitude = newAmplitude
 
+    # cleanup and shutdown the manager
     def shutDownSystem(self):
+        self.soundOn = False
         self.stream.stop_stream()
         self.stream.close()
         self.p.terminate()
-
-'''
-def main():
-    test = SoundManager()
-    test.start()
-    time.sleep(5)
-    test.updateSound(test.pitch + 1000, 1.0)
-
-main()
-'''
