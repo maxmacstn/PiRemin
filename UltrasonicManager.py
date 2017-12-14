@@ -44,4 +44,4 @@ class Ultrasonic(threading.Thread):
 
 
     def end(self):
-        self.isTerminate == True
+        self.isTerminate = True

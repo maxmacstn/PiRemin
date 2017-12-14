@@ -31,9 +31,8 @@ class SoundManager(threading.Thread):
     def playSound(self):
         if (self.soundOn):
             waveData = (numpy.sin(2*numpy.pi*numpy.arange(BITRATE*0.1)*self.frequency/BITRATE)).astype(numpy.float32)
-            if self.stream.is_stopped():
-                self.stream.start_stream()
-            self.stream.write(self.amplitude * waveData)
+            if (self.soundOn):
+                self.stream.write(self.amplitude * waveData)
         else:
             self.stream.stop_stream()
 
@@ -48,6 +47,7 @@ class SoundManager(threading.Thread):
 
     # cleanup and shutdown the manager
     def shutDownSystem(self):
+        print("Terminating sound")
         self.soundOn = False
         self.stream.stop_stream()
         self.stream.close()
