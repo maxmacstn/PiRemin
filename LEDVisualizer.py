@@ -3,7 +3,7 @@ from neopixel import *
 import time
 
 
-
+# LED Visualizer extends Thread
 class LEDVisualizer(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -144,6 +144,7 @@ class LEDVisualizer(threading.Thread):
             self.strip.setPixelColorRGB(i, 0, 0, 0)
         self.strip.show()
 
+    # stop the visualizer thread
     def end(self):
         self.mode = -1
         self.stopLight = True

@@ -5,7 +5,10 @@ import numpy
 # for test running
 import time
 
+# Audio playback bitrate (44100 is standard HD audio playback)
 BITRATE = 44100
+
+# Sound manager extends Thread
 class SoundManager(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)

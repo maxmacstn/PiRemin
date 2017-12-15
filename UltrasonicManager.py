@@ -3,7 +3,7 @@ import hcsr04sensor.sensor as ultrasonic
 import threading
 
 
-
+# Sensor manager extends Thread
 class Ultrasonic(threading.Thread):
     def __init__(self, trig_pin, echo_pin, max_range = 40):
         threading.Thread.__init__(self)
@@ -17,10 +17,12 @@ class Ultrasonic(threading.Thread):
         self.isTerminate  = False
         self.sensor = ultrasonic.Measurement(trig_pin, echo_pin)
 
+    # Get the current value obtained from the sensor
     def getValue(self):
         #print("getValue = ",self.distance)
         return self.distance
 
+    # start the sensor handling thread
     def run(self):
         # lock = threading.Lock()
         # lock.acquire()
@@ -42,6 +44,6 @@ class Ultrasonic(threading.Thread):
         print("Ultrasonic is stopped")
 
 
-
+    # Stop the thread
     def end(self):
         self.isTerminate = True

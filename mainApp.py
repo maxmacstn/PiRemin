@@ -9,15 +9,21 @@ import threading
 from LEDVisualizer import *
 from SoundManager import *
 
+# Set ultrasonic sensor pin for frequency control
 FREQ_TRIG = 23
 FREQ_ECHO = 24
 
+# Set ultrasonic sensor pin for amplitude control
 AMP_TRIG = 17
 AMP_ECHO = 27
 
+# Main program update interval (ms)
 UPDATE_INTERVAL = 33
+
+# LED Mode text for button
 LED_MODE = ["OFF","Rainbow","VU Meter"]
 
+# Main class for GUI
 class PiReminGUI(object):
     def __init__(self, master, **kwargs):
         self.master = master
@@ -49,6 +55,7 @@ class PiReminGUI(object):
         self.setLight()
 
     def on_closing(self):
+        # Turn off ultrasonic Status LED
         try:
             subprocess.call(['./home/pi/max/project/asm/light_off'])
         except Exception:
@@ -57,32 +64,36 @@ class PiReminGUI(object):
             subprocess.call(['./max/project/asm/light_off'])
         except Exception:
             pass
+
+        # Turn off LED Visualizer / SoundManager / UltrasonicSensor
         self.ledVisual.end()
         self.soundManager.shutDownSystem()
         self.ultrasonicAmp.end()
         self.ultrasonicFreq.end()
+
+        # Destroy Main GUI Window
         self.master.destroy()
 
-
+    # Toggle fullscreen / windowed mode
     def toggle_fullscreen(self, event=None):
         self.fullScreen = not self.fullScreen
         self.master.attributes("-fullscreen", self.fullScreen)
         return "break"
 
-
+    # Exit fullscreen mode
     def end_fullscreen(self, event=None):
         self.fullScreen = False
         self.master.attributes("-fullscreen", False)
         return "break"
 
-
+    # Change the current screen mode
     def change_screen_mode(self):
         if (self.fullScreen):
             self.end_fullscreen()
         else:
             self.toggle_fullscreen()
 
-
+    # Inintialize all GUI elements and then start the update loop
     def init_element(self, master):
         print("initing GUI")
         self.pitch_slider = tk.Scale(master, from_=0, to=200, orient=tk.VERTICAL)
@@ -122,15 +133,18 @@ class PiReminGUI(object):
         self.ledMode_button = tk.Button(master, text="OFF", command=self.setLight, font=("Courier", 32))
         self.ledMode_button.place(x=28, y=375)
 
+        # Begin the update loop
         self.master.after(UPDATE_INTERVAL, self.update)
         print("Done init GUI")
 
 
+    # Cycle LED Visualizer mode
     def setLight(self):
         print(self.currentLEDmode)
         self.ledVisual.changeMode()
         self.ledMode_button["text"] = LED_MODE[self.ledVisual.mode]
 
+    # Change ultrasonic status LED according to state
     def statusLED(self,state):
         if (state == self.lastLEDstate):
             return
@@ -148,24 +162,26 @@ class PiReminGUI(object):
                     subprocess.call(['./asm/light_off'])
             self.lastLEDstate = state
 
-
+    # Update loop
     def update(self):
+        # Get the sensor distances
         ultrasonicFreqRange = self.ultrasonicFreq.getValue()
         ultrasonicAmpRange = self.ultrasonicAmp.getValue()
 
+        # Cap the sensor inputs at 50 cm
         if (ultrasonicFreqRange > 50):
             ultrasonicFreqRange = 0
 
         if (ultrasonicAmpRange > 50):
             ultrasonicAmpRange = 0
 
-        #Update ultrasonic status LED
+        # Update ultrasonic status LED
         if(ultrasonicFreqRange + ultrasonicAmpRange != 0):
             self.statusLED(True)
         else:
             self.statusLED(False)
 
-        #Update GUI
+        # Update GUI
         self.FreqVal.set(format(format(ultrasonicFreqRange, '.2f'),">6s"))
         self.AmpVal.set(format(format(ultrasonicAmpRange, '.2f'), ">6s"))
 
@@ -178,10 +194,11 @@ class PiReminGUI(object):
         else:
             vol = ultrasonicAmpRange / 50.0
 
+        # Adjust the sound manager
         self.soundManager.updateSound(freq, vol)
         self.master.after(UPDATE_INTERVAL, self.update)
 
-
+# main program
 def main():
     print("PiRemin is starting...")
     time.sleep(5)
